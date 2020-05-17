@@ -1,14 +1,14 @@
 Metadata-Version: 2.1
 Name: ndn-python-catalog
-Version: 0.2a4
+Version: 0.2
 Summary: An NDN catalog implementation using Python
 Home-page: https://github.com/satyaprakash-1729/ndn-python-catalog
 Author: Satya Prakash
 Author-email: prakashsatya@cs.ucla.edu
 License: Apache License 2.0
 Download-URL: https://pypi.python.org/pypi/ndn-python-catalog
-Project-URL: Bug Tracker, https://github.com/JonnyKong/ndn-python-catalog/issues
-Project-URL: Source Code, https://github.com/JonnyKong/ndn-python-catalog
+Project-URL: Bug Tracker, https://github.com/satyaprakash-1729/ndn-python-catalog/issues
+Project-URL: Source Code, https://github.com/satyaprakash-1729/ndn-python-catalog
 Description: UNKNOWN
 Keywords: NDN
 Platform: UNKNOWN

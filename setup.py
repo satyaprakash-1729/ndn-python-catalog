@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-__version__ = "0.2a4"
+__version__ = "0.2"
 
 setup(
     name='ndn-python-catalog',
@@ -59,7 +59,7 @@ setup(
     ],
 
     package_data={
-        '': ['*.conf.sample', '*.service'],
+        '': ['*.conf', '*.service'],
     },
     include_package_data=True,
 )

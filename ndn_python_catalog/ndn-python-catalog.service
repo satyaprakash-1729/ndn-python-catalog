@@ -1,0 +1,9 @@
+[Unit]
+Description=NDN Catalog Service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ndn-python-catalog
+
+[Install]
+WantedBy=multi-user.target

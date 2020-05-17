@@ -1,1 +1,1 @@
-ndn-python-catalog
+ndn_python_catalog
