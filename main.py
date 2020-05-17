@@ -3,7 +3,6 @@ import argparse
 from . import *
 from ndn.app import NDNApp
 from ndn_python_repo.storage.storage_factory import *
-from ndn_python_repo.utils.pubsub import PubSub
 import asyncio as aio
 from ndn.encoding import Name
 
@@ -49,16 +48,15 @@ def process_config(cmdline_args):
 def main() -> int:
     cmdline_args = process_cmd_opts()
     configuration = process_config(cmdline_args)
-    storage = create_storage(config['db_config'])
+    storage = create_storage(configuration['db_config'])
 
     app = NDNApp()
 
-    pb = PubSub(app)
     read_handle = ReadHandle(app, storage)
-    write_handle = WriteHandle(app, storage, pb, read_handle)
+    write_handle = WriteHandle(app, storage, read_handle)
 
-    catalog = Catalog(Name.from_str(config['catalog_config']['catalog_name']),
-                app, storage, read_handle, write_handle)
+    catalog = Catalog(Name.from_str(configuration['catalog_config']['catalog_name']),
+        app, storage, read_handle, write_handle)
     aio.ensure_future(catalog.listen())
 
     try:

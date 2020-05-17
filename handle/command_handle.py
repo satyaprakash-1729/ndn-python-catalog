@@ -1,8 +1,6 @@
-import asyncio
 import logging
 from ndn.app import NDNApp
 from ndn.encoding import Name, Component
-
 from catalog_command import CatalogCommandParameter, CatalogResponseParameter
 from ndn_python_repo.storage import Storage
 
@@ -26,7 +24,3 @@ class CommandHandle(object):
         param_bytes = Component.get_value(name[-1])
         return CatalogCommandParameter.parse(param_bytes)
 
-    async def schedule_delete_process(self, process_id: int):
-        await asyncio.sleep(60)
-        if process_id in self.m_processes:
-            del self.m_processes[process_id]

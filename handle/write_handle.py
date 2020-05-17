@@ -1,7 +1,7 @@
 import asyncio as aio
 import logging
 from ndn.app import NDNApp
-from ndn.encoding import Name, NonStrictName, DecodeError
+from ndn.encoding import NonStrictName, DecodeError
 from . import ReadHandle, CommandHandle
 from catalog_command import CatalogCommandParameter
 from ndn_python_repo.storage import Storage
@@ -15,7 +15,6 @@ class WriteHandle(CommandHandle):
 
     async def listen(self, prefix: NonStrictName):
         self.prefix = prefix
-
         self.app.route(self.prefix + ['insert'])(self._on_insert)
 
     def _on_insert(self, msg):
