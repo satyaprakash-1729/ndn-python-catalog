@@ -4,6 +4,7 @@ ndn-python-catalog/__init__.py
 ndn-python-catalog/catalog.py
 ndn-python-catalog/config.py
 ndn-python-catalog/consumer.py
+ndn-python-catalog/install.py
 ndn-python-catalog/main.py
 ndn-python-catalog/producer.py
 ndn-python-catalog/handle/__init__.py

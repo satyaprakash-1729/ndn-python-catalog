@@ -14,8 +14,8 @@ setup(
     author_email='prakashsatya@cs.ucla.edu',
     download_url='https://pypi.python.org/pypi/ndn-python-catalog',
     project_urls={
-        "Bug Tracker": "https://github.com/JonnyKong/ndn-python-catalog/issues",
-        "Source Code": "https://github.com/JonnyKong/ndn-python-catalog",
+        "Bug Tracker": "https://github.com/satyaprakash-1729/ndn-python-catalog/issues",
+        "Source Code": "https://github.com/satyaprakash-1729/ndn-python-catalog",
     },
     license='Apache License 2.0',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
