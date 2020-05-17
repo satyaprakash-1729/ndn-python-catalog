@@ -3,7 +3,7 @@ import logging
 from ndn.app import NDNApp
 from ndn.encoding import NonStrictName, DecodeError
 from . import ReadHandle, CommandHandle
-from catalog_command import CatalogCommandParameter
+from command.catalog_command import CatalogCommandParameter
 from ndn_python_repo.storage import Storage
 
 

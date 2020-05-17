@@ -1,0 +1,5 @@
+[console_scripts]
+ndn-python-catalog = ndn_python_catalog.cmd.main:main
+ndn-python-catalog-install = ndn_python_catalog.cmd.install:main
+ndn-python-catalog-port = ndn_python_catalog.cmd.port:main
+

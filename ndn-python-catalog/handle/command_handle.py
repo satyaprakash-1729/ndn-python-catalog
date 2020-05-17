@@ -1,7 +1,7 @@
 import logging
 from ndn.app import NDNApp
 from ndn.encoding import Name, Component
-from catalog_command import CatalogCommandParameter, CatalogResponseParameter
+from command.catalog_command import CatalogCommandParameter, CatalogResponseParameter
 from ndn_python_repo.storage import Storage
 
 
@@ -9,7 +9,6 @@ class CommandHandle(object):
     def __init__(self, app: NDNApp, storage: Storage):
         self.app = app
         self.storage = storage
-        self.m_processes = dict()
 
     async def listen(self, prefix: Name):
         raise NotImplementedError
