@@ -21,6 +21,9 @@ class WriteHandle(CommandHandle):
         self.app.route(self.prefix + ['insert'])(self._on_insert)
 
     def _on_insert(self, int_name, int_param, app_param):
+        aio.ensure_future(self._process_insert(int_name, int_param, app_param))
+
+    async def _process_insert(self, int_name, int_param, app_param):
         print(">>>>", int_name, int_param, app_param)
         try:
             cmd_param = CatalogCommandParameter.parse(int_name)
@@ -29,9 +32,7 @@ class WriteHandle(CommandHandle):
         except (DecodeError, IndexError) as exc:
             logging.warning('Parameter interest blob decoding failed')
             return
-        aio.ensure_future(self._process_insert(cmd_param))
 
-    async def _process_insert(self, cmd_param: CatalogCommandParameter):
         print("CMD PARAM: ", cmd_param)
         data_name = cmd_param.data_name
         repo_name = cmd_param.repo_name

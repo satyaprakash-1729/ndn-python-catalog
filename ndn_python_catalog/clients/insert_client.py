@@ -4,7 +4,7 @@ import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from ndn.app import NDNApp
-from ndn.encoding import NonStrictName, Component, DecodeError, Name
+from ndn.encoding import NonStrictName, Component, DecodeError, NameField, TlvModel
 from ndn.types import InterestNack, InterestTimeout
 from command.catalog_command import CatalogCommandParameter, CatalogResponseParameter
 
@@ -17,7 +17,7 @@ class CommandChecker(object):
         return await self._check('insert', repo_name, catalog_name)
 
     async def _check(self, method: str, repo_name: str,
-                     catalog_name: str) -> CatalogResponseParameter:
+                     catalog_name: str):
         cmd_param = CatalogCommandParameter()
         cmd_param.data_name = 'data1'
         cmd_param.repo_name = repo_name
@@ -27,17 +27,17 @@ class CommandChecker(object):
         print(">>>>>>>>>", name)
         name.append(Component.from_str(method))
         print(">>>>>>>>>", name)
-        name.append(Component.from_bytes(cmd_param_bytes))
-        print(">>>>>>>>>", name)
+        # name.append(Component.from_bytes(cmd_param_bytes))
+        # print(">>>>>>>>>", name)
         try:
             data_name, meta_info, content = await self.app.express_interest(
-                    name, must_be_fresh=True, can_be_prefix=True, lifetime=1000)
-            try:
-                cmd_response = CatalogResponseParameter.parse(content)
-            except DecodeError:
-                return None
-            except Exception:
-                pass
+                    name, app_param=cmd_param_bytes, must_be_fresh=False, can_be_prefix=False, lifetime=1000)
+            # try:
+            #     cmd_response = CatalogResponseParameter.parse(content)
+            # except DecodeError:
+            #     return None
+            # except Exception:
+            #     pass
         except InterestNack:
             print(">>>NACK")
             return None
@@ -46,7 +46,7 @@ class CommandChecker(object):
             return None
         finally:
             app.shutdown()
-        return cmd_response
+        # return cmd_response
 
 
 if __name__ == "__main__":

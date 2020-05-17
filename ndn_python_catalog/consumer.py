@@ -5,6 +5,7 @@ from typing import List
 import ndn.utils
 import asyncio as aio
 
+
 class Consumer(object):
 	def __init__(self, app: NDNApp, name: NonStrictName):
 		self.name = name
@@ -30,8 +31,7 @@ class Consumer(object):
 			app.shutdown()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 	app = NDNApp()
 	consumer = Consumer(app, "consumer1")
 	app.run_forever(after_start=consumer.send_interest('/producer1/A/C'))
-	
