@@ -40,8 +40,8 @@ def process_config(cmdline_args):
     Read and process config file. Some config options are overridden by cmdline args.
     """
     configuration = get_yaml(cmdline_args.config)
-    if cmdline_args.repo_name is not None:
-        configuration['repo_config']['repo_name'] = cmdline_args.repo_name
+    if cmdline_args.catalog_name is not None:
+        configuration['catalog_config']['catalog_name'] = cmdline_args.catalog_name
     return configuration
 
 

@@ -1,7 +1,6 @@
-import logging
 from ndn.app import NDNApp
 from ndn.encoding import Name, Component
-from command.catalog_command import CatalogCommandParameter, CatalogResponseParameter
+from ..command.catalog_command import CatalogCommandParameter, CatalogResponseParameter
 from ndn_python_repo.storage import Storage
 
 
@@ -14,7 +13,6 @@ class CommandHandle(object):
         raise NotImplementedError
 
     def reply_with_response(self, int_name, response: CatalogResponseParameter):
-        logging.info('Reply to command: {}'.format(Name.to_str(int_name)))
         response_bytes = response.encode()
         self.app.put_data(int_name, response_bytes, freshness_period=1000)
 
