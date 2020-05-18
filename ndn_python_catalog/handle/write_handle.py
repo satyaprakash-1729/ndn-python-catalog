@@ -1,16 +1,16 @@
 import asyncio as aio
-import logging
 from ndn.app import NDNApp
-from ndn.encoding import NonStrictName, DecodeError, FormalName, InterestParam, BinaryStr, Name
+from ndn.encoding import NonStrictName, FormalName, InterestParam, BinaryStr, Name
 from typing import Optional
 from .command_handle import CommandHandle
 from .read_handle import ReadHandle
-from ..command.catalog_command import CatalogCommandParameter, CatalogRequestParameter
-from ndn_python_repo.storage import Storage
+from ..command.catalog_command import *
+from ..storage import SqliteStorage
+from ndn.types import InterestNack, InterestTimeout
 
 
 class WriteHandle(CommandHandle):
-    def __init__(self, app: NDNApp, storage: Storage, read_handle: ReadHandle):
+    def __init__(self, app: NDNApp, storage: SqliteStorage, read_handle: ReadHandle):
         super(WriteHandle, self).__init__(app, storage)
         self.m_read_handle = read_handle
         self.prefix = None
@@ -32,19 +32,25 @@ class WriteHandle(CommandHandle):
 
     async def _process_insert(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         print(">>>>", int_name, int_param, app_param)
-        try:
-            cmd_param = CatalogCommandParameter.parse(app_param)
-        except (DecodeError, IndexError) as exc:
-            logging.warning('Parameter interest blob decoding failed')
-            return
-
         # ACK
-        self.app.put_data(int_name, None, freshness_period=0)
+        self.app.put_data(int_name, "".encode(), freshness_period=0)
         # INTEREST
-        _,_, data_bytes = await self.app.express_interest(cmd_param.repo_name + ['fetch_map'], must_be_fresh=True, can_be_prefix=False)
+        try:
+            name = Name.from_str("testrepo") + ['fetch_map']
+            print("Sending interest on : ", Name.to_str(name))
+            _,_, data_bytes = await self.app.express_interest(name, must_be_fresh=True, can_be_prefix=False)
+        except InterestNack:
+            print(">>>NACK")
+            return None
+        except InterestTimeout:
+            print(">>>TIMEOUT")
+            return None
+        data_recvd = CatalogDataListParameter.parse(data_bytes)
+        mapping_name = Name.to_str(data_recvd.name)
+        keys = [Name.to_str(data_name) for data_name in data_recvd.data_names]
+        vals = [mapping_name]*len(keys)
 
-        data_recvd = bytes(data_bytes)
-        print(">>>> ", data_recvd)
+        self.storage.put_batch(keys, vals)
         # self.storage.put(bytes(data_name, encoding='utf-8'), bytes(repo_name, encoding='utf-8'), 1000)
         # self.app.put_data(int_name, bytes(data_name + repo_name, encoding='utf-8'))
 

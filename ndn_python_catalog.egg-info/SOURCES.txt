@@ -19,3 +19,6 @@ ndn_python_catalog/handle/__init__.py
 ndn_python_catalog/handle/command_handle.py
 ndn_python_catalog/handle/read_handle.py
 ndn_python_catalog/handle/write_handle.py
+ndn_python_catalog/storage/__init__.py
+ndn_python_catalog/storage/sqlite.py
+ndn_python_catalog/storage/storage_factory.py

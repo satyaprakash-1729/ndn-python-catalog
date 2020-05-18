@@ -9,6 +9,7 @@ from typing import Optional, List
 from ndn.types import InterestNack, InterestTimeout
 from command.catalog_command import CatalogCommandParameter, CatalogResponseParameter, CatalogDataListParameter
 from ndn.security import KeychainDigest
+from ndn.utils import gen_nonce
 
 
 class CommandChecker(object):
@@ -18,7 +19,9 @@ class CommandChecker(object):
         self.prefix = prefix
 
     def listen(self):
-        self.app.route(Name.from_str(self.prefix) + ["fetch_map"])(self._on_interest)
+        name = Name.from_str(self.prefix) + ["fetch_map"]
+        print("Listening: ", Name.to_str(name))
+        self.app.route(name)(self._on_interest)
 
     async def check_insert(self, catalog_name: str) -> CatalogResponseParameter:
         return await self._check('insert', catalog_name)
@@ -30,11 +33,12 @@ class CommandChecker(object):
 
         name = Name.from_str(catalog_name)
         name += [method]
+        name += [str(gen_nonce())]
         print(">>>>>>>>>", Name.to_str(name))
         try:
             _,_, data_bytes = await self.app.express_interest(
-                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=6000)
-            print(">>>RECVD: ", bytes(data_bytes))
+                    name, must_be_fresh=True, can_be_prefix=True)
+            print(">>> ACK RECVD: ", bytes(data_bytes))
 
         except InterestNack:
             print(">>>NACK")
@@ -42,11 +46,10 @@ class CommandChecker(object):
         except InterestTimeout:
             print(">>>TIMEOUT")
             return None
-        finally:
-            app.shutdown()
         # return cmd_response
 
     def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
+        print(">>>> FETCH REQUEST", int_name)
         aio.ensure_future(self._process_interest(int_name, int_param, app_param))
 
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
@@ -62,4 +65,4 @@ if __name__ == "__main__":
     app = NDNApp(keychain=KeychainDigest())
     commChecker = CommandChecker("testrepo", app, ["data1", "data2"])
     commChecker.listen()
-    app.run_forever(after_start=commChecker.check_insert("/catalog18"))
+    app.run_forever(after_start=commChecker.check_insert("/catalog"))

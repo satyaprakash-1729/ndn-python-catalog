@@ -2,7 +2,7 @@ import pkg_resources
 import argparse
 from . import *
 from ndn.app import NDNApp
-from ndn_python_repo.storage.storage_factory import *
+from .storage.storage_factory import *
 import asyncio as aio
 from ndn.encoding import Name
 from ndn.security import KeychainDigest
