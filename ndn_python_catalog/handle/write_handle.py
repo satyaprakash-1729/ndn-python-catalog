@@ -17,12 +17,11 @@ class WriteHandle(CommandHandle):
 
     async def listen(self, prefix: NonStrictName):
         self.prefix = prefix
-        # print(self.prefix)
         print(">>>>", Name.to_str(self.prefix + ['insert']))
-
+        # /catalog/insert
         self.app.route(self.prefix + ['insert'])(self._on_insert)
-
-        self.app.route(self.prefix)(self._on_interest)
+        # /catalog/query
+        self.app.route(self.prefix + ['query'])(self._on_interest)
 
     def _on_insert(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         print(">>>>", int_name, int_param, app_param)
@@ -39,14 +38,15 @@ class WriteHandle(CommandHandle):
             logging.warning('Parameter interest blob decoding failed')
             return
 
-        print("CMD PARAM: ", cmd_param)
-        data_name = cmd_param.data_name
-        # data_name = "data3"
-        repo_name = cmd_param.repo_name
-        # repo_name = "testrepo3"
+        # ACK
+        self.app.put_data(int_name, None, freshness_period=0)
+        # INTEREST
+        _,_, data_bytes = await self.app.express_interest(cmd_param.repo_name + ['fetch_map'], must_be_fresh=True, can_be_prefix=False)
 
-        self.storage.put(bytes(data_name, encoding='utf-8'), bytes(repo_name, encoding='utf-8'), 1000)
-        self.app.put_data(int_name, bytes(data_name + repo_name, encoding='utf-8'))
+        data_recvd = bytes(data_bytes)
+        print(">>>> ", data_recvd)
+        # self.storage.put(bytes(data_name, encoding='utf-8'), bytes(repo_name, encoding='utf-8'), 1000)
+        # self.app.put_data(int_name, bytes(data_name + repo_name, encoding='utf-8'))
 
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         app_param_parsed = CatalogRequestParameter.parse(app_param)
