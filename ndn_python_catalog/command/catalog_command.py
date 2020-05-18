@@ -9,3 +9,7 @@ class CatalogCommandParameter(TlvModel):
 class CatalogResponseParameter(TlvModel):
     data_name = NameField()
     repo_name = NameField()
+
+
+class CatalogRequestParameter(TlvModel):
+    data_name = NameField()
