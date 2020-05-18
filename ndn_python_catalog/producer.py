@@ -19,7 +19,7 @@ class Producer(object):
 
 	async def _process_msg_interest(self, int_name, int_param, app_param):
 		content = "hello world".encode()
-		self.app.put_data(int_name, content = content, freshness_period=10000)
+		self.app.put_data(int_name, content=content, freshness_period=10000)
 		print("Interest Recvd: ", int_name)
 
 

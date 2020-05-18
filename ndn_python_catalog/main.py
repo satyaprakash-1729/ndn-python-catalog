@@ -5,6 +5,7 @@ from ndn.app import NDNApp
 from ndn_python_repo.storage.storage_factory import *
 import asyncio as aio
 from ndn.encoding import Name
+from ndn.security import KeychainDigest
 
 
 def process_cmd_opts():
@@ -50,7 +51,7 @@ def main() -> int:
     configuration = process_config(cmdline_args)
     storage = create_storage(configuration['db_config'])
 
-    app = NDNApp()
+    app = NDNApp(keychain=KeychainDigest())
 
     read_handle = ReadHandle(app, storage)
     write_handle = WriteHandle(app, storage, read_handle)

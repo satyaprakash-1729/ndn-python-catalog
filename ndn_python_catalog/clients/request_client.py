@@ -7,6 +7,7 @@ from ndn.app import NDNApp
 from ndn.encoding import Name
 from ndn.types import InterestNack, InterestTimeout
 from command.catalog_command import *
+from ndn.security import KeychainDigest
 
 
 class InterestChecker(object):
@@ -26,8 +27,8 @@ class InterestChecker(object):
         name = Name.from_str(catalog_name)
         try:
             _, _, data_bytes = await self.app.express_interest(
-                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=True, lifetime=6000)
-            print("DATA Recvd: ", data_bytes.decode('utf-8'))
+                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=10000)
+            print("DATA Recvd: ", bytes(data_bytes))
         except InterestNack:
             print(">>>NACK")
             return None
@@ -40,6 +41,6 @@ class InterestChecker(object):
 
 
 if __name__ == "__main__":
-    app = NDNApp()
+    app = NDNApp(keychain=KeychainDigest())
     intChecker = InterestChecker(app)
-    app.run_forever(after_start=intChecker.check_interest("data1", "/catalog1"))
+    app.run_forever(after_start=intChecker.check_interest("data2", "/catalog19"))

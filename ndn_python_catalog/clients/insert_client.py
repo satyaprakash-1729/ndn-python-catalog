@@ -7,6 +7,7 @@ from ndn.app import NDNApp
 from ndn.encoding import NonStrictName, Component, DecodeError, NameField, TlvModel, Name
 from ndn.types import InterestNack, InterestTimeout
 from command.catalog_command import CatalogCommandParameter, CatalogResponseParameter
+from ndn.security import KeychainDigest
 
 
 class CommandChecker(object):
@@ -27,8 +28,9 @@ class CommandChecker(object):
         name += [method]
         print(">>>>>>>>>", Name.to_str(name))
         try:
-            _,_,_ = await self.app.express_interest(
-                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=True, lifetime=6000)
+            _,_, data_bytes = await self.app.express_interest(
+                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=6000)
+            print(">>>RECVD: ", bytes(data_bytes))
         except InterestNack:
             print(">>>NACK")
             return None
@@ -41,6 +43,6 @@ class CommandChecker(object):
 
 
 if __name__ == "__main__":
-    app = NDNApp()
+    app = NDNApp(keychain=KeychainDigest())
     commChecker = CommandChecker(app)
-    app.run_forever(after_start=commChecker.check_insert("testrepo", "/catalog1"))
+    app.run_forever(after_start=commChecker.check_insert("testrepo", "/catalog18"))

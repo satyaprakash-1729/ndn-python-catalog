@@ -35,23 +35,25 @@ class WriteHandle(CommandHandle):
         print(">>>>", int_name, int_param, app_param)
         try:
             cmd_param = CatalogCommandParameter.parse(app_param)
-            if cmd_param.name is None:
-                raise DecodeError()
         except (DecodeError, IndexError) as exc:
             logging.warning('Parameter interest blob decoding failed')
             return
 
         print("CMD PARAM: ", cmd_param)
         data_name = cmd_param.data_name
+        # data_name = "data3"
         repo_name = cmd_param.repo_name
+        # repo_name = "testrepo3"
 
-        self.storage.put(bytes(data_name), bytes(repo_name), 1000)
-        self.app.put_data()
+        self.storage.put(bytes(data_name, encoding='utf-8'), bytes(repo_name, encoding='utf-8'), 1000)
+        self.app.put_data(int_name, bytes(data_name + repo_name, encoding='utf-8'))
 
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         app_param_parsed = CatalogRequestParameter.parse(app_param)
+        print(">> ", int_name)
         data_name = app_param_parsed.data_name
 
-        repo_name_bytes = self.storage.get(bytes(data_name))
-        self.app.put_data(int_name, repo_name_bytes, freshness_period=0)
+        repo_name_bytes = self.storage.get(bytes(data_name, encoding='utf-8'))
+        print(">> ", repo_name_bytes)
+        self.app.put_data(int_name, repo_name_bytes)
 
