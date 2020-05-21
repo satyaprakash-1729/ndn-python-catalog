@@ -13,9 +13,10 @@ from ndn.utils import gen_nonce
 
 
 class CommandChecker(object):
-    def __init__(self, prefix: str, app: NDNApp, data_names: List[str]):
+    def __init__(self, prefix: str, app: NDNApp, insert_data_names: List[str], delete_data_names: List[str]):
         self.app = app
-        self.data_names = data_names
+        self.insert_data_names = insert_data_names
+        self.delete_data_names = delete_data_names
         self.prefix = prefix
 
     def listen(self):
@@ -37,7 +38,7 @@ class CommandChecker(object):
         print(">>>>>>>>>", Name.to_str(name))
         try:
             _,_, data_bytes = await self.app.express_interest(
-                    name, must_be_fresh=True, can_be_prefix=True)
+                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=True)
             print(">>> ACK RECVD: ", bytes(data_bytes))
 
         except InterestNack:
@@ -55,7 +56,8 @@ class CommandChecker(object):
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         cmd_param = CatalogDataListParameter()
         cmd_param.name = self.prefix
-        cmd_param.data_names = self.data_names
+        cmd_param.insert_data_names = self.insert_data_names
+        cmd_param.delete_data_names = self.delete_data_names
         cmd_param = cmd_param.encode()
 
         self.app.put_data(int_name, bytes(cmd_param), freshness_period=0)
@@ -63,6 +65,6 @@ class CommandChecker(object):
 
 if __name__ == "__main__":
     app = NDNApp(keychain=KeychainDigest())
-    commChecker = CommandChecker("testrepo", app, ["data1", "data2"])
+    commChecker = CommandChecker("testrepo", app, ["data5", "data6"], ["data1"])
     commChecker.listen()
     app.run_forever(after_start=commChecker.check_insert("/catalog"))

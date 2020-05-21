@@ -1,29 +1,28 @@
 import asyncio as aio
-import logging
 from ndn.app import NDNApp
-from ndn.encoding import Name
-from ndn_python_repo.storage import Storage
+from ..storage import SqliteStorage
+from ndn.encoding import FormalName, InterestParam, BinaryStr, Name
+from typing import Optional
+from ..command import CatalogRequestParameter
 
 
 class ReadHandle(object):
-    def __init__(self, app: NDNApp, storage: Storage):
+    def __init__(self, app: NDNApp, storage: SqliteStorage, prefix: str):
         self.app = app
         self.storage = storage
-        self.listen(Name.from_str('/'))
+        self.listen(Name.from_str(prefix))
 
     def listen(self, prefix):
-        self.app.route(prefix)(self._on_interest)
-        logging.info(f'Read handle: listening to {Name.to_str(prefix)}')
+        print("REGISTERED TO: ", Name.to_str(prefix + ['query']))
+        self.app.route(prefix + ['query'])(self._on_interest)
 
-    def unlisten(self, prefix):
-        aio.ensure_future(self.app.unregister(prefix))
-        logging.info(f'Read handle: stop listening to {Name.to_str(prefix)}')
+    def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
+        aio.ensure_future(self._process_interest(int_name, int_param, app_param))
 
-    def _on_interest(self, int_name, int_param, _app_param):
-        if int_param.must_be_fresh:
-            return
-        data_bytes = self.storage.get_data_packet(int_name, int_param.can_be_prefix)
-        if data_bytes is None:
-            return
-        self.app.put_raw_packet(data_bytes)
-        logging.info(f'Read handle: serve data {Name.to_str(int_name)}')
+    async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
+        app_param_parsed = CatalogRequestParameter.parse(app_param)
+        print(">> ", int_name)
+        data_name = app_param_parsed.data_name
+
+        name_bytes = self.storage.get(bytes(data_name, encoding='utf-8'))
+        self.app.put_data(int_name, name_bytes)

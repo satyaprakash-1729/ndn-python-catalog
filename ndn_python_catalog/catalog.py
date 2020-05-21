@@ -1,10 +1,10 @@
 from ndn.app import NDNApp
-from ndn_python_repo.storage import *
+from .storage import *
 from .handle import *
 
 
 class Catalog(object):
-    def __init__(self, prefix, app: NDNApp, storage: Storage, read_handle: ReadHandle,
+    def __init__(self, prefix, app: NDNApp, storage: SqliteStorage, read_handle: ReadHandle,
                  write_handle: WriteHandle):
         self.prefix = prefix
         self.app = app

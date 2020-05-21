@@ -53,10 +53,11 @@ def main() -> int:
 
     app = NDNApp(keychain=KeychainDigest())
 
-    read_handle = ReadHandle(app, storage)
+    catalog_name = configuration['catalog_config']['catalog_name']
+    read_handle = ReadHandle(app, storage, catalog_name)
     write_handle = WriteHandle(app, storage, read_handle)
 
-    catalog = Catalog(Name.from_str(configuration['catalog_config']['catalog_name']),
+    catalog = Catalog(Name.from_str(catalog_name),
         app, storage, read_handle, write_handle)
     aio.ensure_future(catalog.listen())
 

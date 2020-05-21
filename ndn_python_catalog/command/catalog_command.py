@@ -16,4 +16,5 @@ class CatalogRequestParameter(TlvModel):
 
 class CatalogDataListParameter(TlvModel):
     name = NameField()
-    data_names = RepeatedField(NameField())
+    insert_data_names = RepeatedField(NameField())
+    delete_data_names = RepeatedField(NameField())

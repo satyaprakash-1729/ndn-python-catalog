@@ -44,8 +44,14 @@ class SqliteStorage(object):
         ret = c.fetchone()
         return ret[0] if ret else None
 
-    def _remove(self, key: bytes) -> bool:
+    def remove(self, key: bytes) -> bool:
         c = self.conn.cursor()
         n_removed = c.execute('DELETE FROM catalog_data WHERE key = ?', (key, )).rowcount
+        self.conn.commit()
+        return n_removed > 0
+
+    def remove_batch(self, keys: List[bytes]) -> bool:
+        c = self.conn.cursor()
+        n_removed = c.executemany('DELETE FROM catalog_data WHERE key = ?', [(key, ) for key in keys]).rowcount
         self.conn.commit()
         return n_removed > 0
