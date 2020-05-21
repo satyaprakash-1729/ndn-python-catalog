@@ -38,7 +38,7 @@ class CommandChecker(object):
         print(">>>>>>>>>", Name.to_str(name))
         try:
             _,_, data_bytes = await self.app.express_interest(
-                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=True)
+                    name, must_be_fresh=True, can_be_prefix=True)
             print(">>> ACK RECVD: ", bytes(data_bytes))
 
         except InterestNack:

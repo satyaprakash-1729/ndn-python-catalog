@@ -27,8 +27,9 @@ class WriteHandle(CommandHandle):
 
     async def _process_insert(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         print(">>>>", int_name, int_param, app_param)
-        cmd_param = CatalogCommandParameter.parse(app_param)
-        name = cmd_param.name
+        # cmd_param = CatalogCommandParameter.parse(app_param)
+        # name = cmd_param.name
+        name = "testrepo"
 
         # ACK
         self.app.put_data(int_name, "".encode(), freshness_period=0)
