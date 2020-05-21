@@ -1,11 +1,11 @@
 from ndn.app import NDNApp
 from ndn.encoding import Name, Component
 from ..command.catalog_command import CatalogCommandParameter, CatalogResponseParameter
-from ndn_python_repo.storage import Storage
+from ndn_python_repo.storage import SqliteStorage
 
 
 class CommandHandle(object):
-    def __init__(self, app: NDNApp, storage: Storage):
+    def __init__(self, app: NDNApp, storage: SqliteStorage):
         self.app = app
         self.storage = storage
 

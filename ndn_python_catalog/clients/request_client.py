@@ -15,11 +15,11 @@ class InterestChecker(object):
     def __init__(self, app: NDNApp):
         self.app = app
 
-    async def check_interest(self, data_name: str, catalog_name: str):
-        return await self._check(data_name, catalog_name, "query")
+    async def check_interest(self, data_name: str, catalog_name: str, repo_name: str):
+        return await self._check(data_name, catalog_name, "query", repo_name)
 
-    async def _check(self, repo_name: str,
-                     catalog_name: str, method: str):
+    async def _check(self, data_name: str,
+                     catalog_name: str, method: str, repo_name: str):
 
         cmd_param = CatalogRequestParameter()
         cmd_param.data_name = 'data1'
@@ -28,11 +28,14 @@ class InterestChecker(object):
         name = Name.from_str(catalog_name)
         name += [method]
         name += [str(gen_nonce())]
+        print("Sending interest to ", Name.to_str(name))
         try:
             _, _, data_bytes = await self.app.express_interest(
-                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=10000)
+                    name, must_be_fresh=True, can_be_prefix=True, lifetime=10000)
             data_recvd = bytes(data_bytes)
-            assert bytes(repo_name) == data_recvd
+            print(data_recvd)
+            assert bytes(repo_name, encoding='utf-8') == data_recvd
+            print("Repo Name Correct!")
         except InterestNack:
             print(">>>NACK")
             return None
@@ -47,4 +50,4 @@ class InterestChecker(object):
 if __name__ == "__main__":
     app = NDNApp(keychain=KeychainDigest())
     intChecker = InterestChecker(app)
-    app.run_forever(after_start=intChecker.check_interest("data2", "/catalog"))
+    app.run_forever(after_start=intChecker.check_interest("data20", "/catalog16", repo_name="/testrepo"))

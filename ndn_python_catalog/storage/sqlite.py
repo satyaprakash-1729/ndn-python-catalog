@@ -26,18 +26,20 @@ class SqliteStorage(object):
 
     def put(self, key: bytes, value: bytes):
         c = self.conn.cursor()
-        c.execute('INSERT OR REPLACE INTO catalog_data (key, value, expire_time_ms) VALUES (?, ?)',
+        c.execute('INSERT OR REPLACE INTO catalog_data (key, value) VALUES (?, ?)',
             (key, value))
         self.conn.commit()
 
     def put_batch(self, keys: List[bytes], values: List[bytes]):
         c = self.conn.cursor()
+        print (keys)
         c.executemany('INSERT OR REPLACE INTO catalog_data (key, value) VALUES (?, ?)',
             zip(keys, values))
         self.conn.commit()
 
     def get(self, key: bytes) -> Optional[bytes]:
         c = self.conn.cursor()
+        print(key)
         query = 'SELECT value FROM catalog_data WHERE '
         query += 'key = ?'
         c.execute(query, (key, ))
@@ -52,6 +54,28 @@ class SqliteStorage(object):
 
     def remove_batch(self, keys: List[bytes]) -> bool:
         c = self.conn.cursor()
+        print (keys)
         n_removed = c.executemany('DELETE FROM catalog_data WHERE key = ?', [(key, ) for key in keys]).rowcount
         self.conn.commit()
         return n_removed > 0
+
+    def alter_batch(self, keys: List[bytes], values: List[bytes]):
+        c = self.conn.cursor()
+        for key, value in zip(keys, values):
+            return_val = self.get(key)
+            if return_val is None:
+                self.put(key, value)
+            else:
+                return_val = return_val + " " + value
+                c.execute('INSERT OR REPLACE INTO catalog_data (key, value) VALUES (?, ?)',
+                          (key, return_val))
+        self.conn.commit()
+
+    def granular_remove_batch(self, keys: List[bytes], repo_name: bytes):
+        for key in keys:
+            return_data_names = self.get(key).split()
+            left_names = [name for name in return_data_names if name != repo_name]
+            if len(left_names) > 0:
+                self.put(key, " ".join(left_names))
+            else:
+                self.remove(key)
