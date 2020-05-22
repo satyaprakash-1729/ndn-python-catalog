@@ -51,7 +51,7 @@ def main() -> int:
     configuration = process_config(cmdline_args)
     storage = create_storage(configuration['db_config'])
 
-    app = NDNApp(keychain=KeychainDigest())
+    app = NDNApp()
 
     catalog_name = configuration['catalog_config']['catalog_name']
     read_handle = ReadHandle(app, storage, catalog_name)

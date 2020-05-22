@@ -31,23 +31,19 @@ class WriteHandle(CommandHandle):
 #        self.app.put_data(int_name, "".encode(), freshness_period=0)
 
     async def _process_insert(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
-        print(">>>>", int_name, int_param, app_param)
-        # cmd_param = CatalogCommandParameter.parse(app_param)
-        # name = cmd_param.name
-        name = Name.from_str("testrepo")
-
+        cmd_param = CatalogCommandParameter.parse(app_param)
+        name = cmd_param.name
+        name = name + ['fetch_map']
         # ACK
-        #aio.ensure_future(self._process_insert(int_name))
-        self.app.put_data(int_name, "".encode(), freshness_period=0)
+        self.app.put_data(int_name, "".encode(), freshness_period=500)
 
         # INTEREST
         n_retries = 3
         while n_retries > 0:
             try:
-                name = name + ['fetch_map']
-                name += [str(gen_nonce())]
+                nonce_name = name + [str(gen_nonce())]
                 print("Sending interest on : ", Name.to_str(name))
-                _, _, data_bytes = await self.app.express_interest(name, must_be_fresh=True, can_be_prefix=True)
+                _, _, data_bytes = await self.app.express_interest(nonce_name, must_be_fresh=True, can_be_prefix=False)
                 break
             except InterestNack:
                 print(">>>NACK")

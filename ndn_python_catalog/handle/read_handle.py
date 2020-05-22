@@ -20,9 +20,13 @@ class ReadHandle(object):
         aio.ensure_future(self._process_interest(int_name, int_param, app_param))
 
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
-        # app_param_parsed = CatalogRequestParameter.parse(app_param)
-        # print(">> ", int_name)
-        # data_name = app_param_parsed.data_name
-        data_name = "/data20"
-        name_bytes = self.storage.get(data_name)
-        self.app.put_data(int_name, name_bytes.encode())
+        app_param_parsed = CatalogRequestParameter.parse(app_param)
+        data_name = app_param_parsed.data_name
+
+        query_key = Name.to_str(data_name)
+        name_bytes = self.storage.get(query_key)
+        print(name_bytes)
+        if name_bytes is not None:
+            self.app.put_data(int_name, content=name_bytes.encode(), freshness_period=500)
+        else:
+            self.app.put_data(int_name, content="".encode(), freshness_period=500)

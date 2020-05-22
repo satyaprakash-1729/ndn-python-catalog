@@ -27,7 +27,7 @@ class CommandChecker(object):
     async def check_insert(self, catalog_name: str) -> CatalogResponseParameter:
         method = 'insert'
         cmd_param = CatalogCommandParameter()
-        cmd_param.repo_name = self.prefix
+        cmd_param.name = self.prefix
         cmd_param_bytes = cmd_param.encode()
 
         name = Name.from_str(catalog_name)
@@ -35,7 +35,7 @@ class CommandChecker(object):
         name += [str(gen_nonce())]
         print(">>>>>>>>>", Name.to_str(name))
         try:
-            aio.ensure_future(self.send_interest(name))
+            aio.ensure_future(self.send_interest(name, cmd_param_bytes))
         except InterestNack:
             print(">>>NACK")
             return None
@@ -44,9 +44,9 @@ class CommandChecker(object):
             return None
         # return cmd_response
 
-    async def send_interest(self, name: FormalName):
+    async def send_interest(self, name: FormalName, cmd_param_bytes: bytes):
         _, _, data_bytes = await self.app.express_interest(
-            name, must_be_fresh=True, can_be_prefix=True)
+            name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False)
         print(">>> ACK RECVD: ", bytes(data_bytes))
 
     def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
@@ -61,11 +61,11 @@ class CommandChecker(object):
         cmd_param.delete_data_names = self.delete_data_names
         cmd_param = cmd_param.encode()
 
-        self.app.put_data(int_name, bytes(cmd_param), freshness_period=0)
+        self.app.put_data(int_name, bytes(cmd_param), freshness_period=500)
 
 
 if __name__ == "__main__":
-    app = NDNApp(keychain=KeychainDigest())
-    commChecker = CommandChecker("testrepo", app, [], ["data4", "data5"])
+    app = NDNApp()
+    commChecker = CommandChecker("testrepo2", app, ["data4", "data5"], [])
     aio.ensure_future(commChecker.listen())
-    app.run_forever(after_start=commChecker.check_insert("/catalog16"))
+    app.run_forever(after_start=commChecker.check_insert("/catalog3"))

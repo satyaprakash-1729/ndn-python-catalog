@@ -22,7 +22,7 @@ class InterestChecker(object):
                      catalog_name: str, method: str, repo_name: str):
 
         cmd_param = CatalogRequestParameter()
-        cmd_param.data_name = 'data1'
+        cmd_param.data_name = data_name
         cmd_param_bytes = cmd_param.encode()
 
         name = Name.from_str(catalog_name)
@@ -31,7 +31,7 @@ class InterestChecker(object):
         print("Sending interest to ", Name.to_str(name))
         try:
             _, _, data_bytes = await self.app.express_interest(
-                    name, must_be_fresh=True, can_be_prefix=True, lifetime=10000)
+                    name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=4000)
             data_recvd = bytes(data_bytes)
             print(data_recvd)
             assert bytes(repo_name, encoding='utf-8') == data_recvd
@@ -48,6 +48,6 @@ class InterestChecker(object):
 
 
 if __name__ == "__main__":
-    app = NDNApp(keychain=KeychainDigest())
+    app = NDNApp()
     intChecker = InterestChecker(app)
-    app.run_forever(after_start=intChecker.check_interest("data20", "/catalog16", repo_name="/testrepo"))
+    app.run_forever(after_start=intChecker.check_interest("data1", "/catalog3", repo_name="/testrepo"))

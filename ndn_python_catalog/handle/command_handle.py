@@ -1,7 +1,7 @@
 from ndn.app import NDNApp
 from ndn.encoding import Name, Component
 from ..command.catalog_command import CatalogCommandParameter, CatalogResponseParameter
-from ndn_python_repo.storage import SqliteStorage
+from ..storage import SqliteStorage
 
 
 class CommandHandle(object):
