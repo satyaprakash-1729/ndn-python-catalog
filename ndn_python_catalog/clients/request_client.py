@@ -25,11 +25,11 @@ class InterestChecker(object):
     def __init__(self, app: NDNApp):
         self.app = app
 
-    async def check_interest(self, data_name: str, catalog_name: str, repo_name: str):
-        return await self._check(data_name, catalog_name, "query", repo_name)
+    async def check_interest(self, data_name: str, catalog_name: str):
+        return await self._check(data_name, catalog_name, "query")
 
     async def _check(self, data_name: str,
-                     catalog_name: str, method: str, repo_name: str):
+                     catalog_name: str, method: str):
 
         cmd_param = CatalogRequestParameter()
         cmd_param.data_name = data_name
@@ -59,4 +59,4 @@ if __name__ == "__main__":
     config_logging()
     app = NDNApp()
     intChecker = InterestChecker(app)
-    app.run_forever(after_start=intChecker.check_interest("data5", "/catalog", repo_name="/testrepo"))
+    app.run_forever(after_start=intChecker.check_interest("data5", "/catalog"))

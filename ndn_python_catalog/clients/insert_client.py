@@ -13,6 +13,16 @@ from ndn.security import KeychainDigest
 from ndn.utils import gen_nonce
 
 
+def config_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
+
 class CommandChecker(object):
     def __init__(self, prefix: str, app: NDNApp, insert_data_names: List[CatalogInsertParameter],
                  delete_data_names: List[CatalogDeleteParameter]):
@@ -84,6 +94,7 @@ def get_time(hrs: int, mins: int, secs: int):
 
 
 if __name__ == "__main__":
+    config_logging()
     app = NDNApp()
     commChecker = CommandChecker("producer", app, [create_insert_parameter("data5", "testrepo3", get_time(0, 5, 0)),
                                                    create_insert_parameter("data5", "testrepo8", get_time(0, 5, 0))],
