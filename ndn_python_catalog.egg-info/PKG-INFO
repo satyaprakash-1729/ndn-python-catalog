@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ndn-python-catalog
-Version: 0.2
+Version: 1.0
 Summary: An NDN catalog implementation using Python
 Home-page: https://github.com/satyaprakash-1729/ndn-python-catalog
 Author: Satya Prakash
