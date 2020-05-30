@@ -19,9 +19,10 @@ class SqliteStorage(object):
         c = self.conn.cursor()
         c.execute("""
             CREATE TABLE IF NOT EXISTS catalog_data (
-                key BLOB PRIMARY KEY,
+                key BLOB,
                 value BLOB,
-                expire_time_ms INTEGER
+                expire_time_ms INTEGER,
+                PRIMARY KEY(key, value)
             )
         """)
         self.conn.commit()

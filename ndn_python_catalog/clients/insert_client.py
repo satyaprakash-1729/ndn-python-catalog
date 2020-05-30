@@ -79,9 +79,14 @@ def create_delete_parameter(data_name: str, name: str):
     return param
 
 
+def get_time(hrs: int, mins: int, secs: int):
+    return (hrs*60 + mins)*60 + secs
+
+
 if __name__ == "__main__":
     app = NDNApp()
-    commChecker = CommandChecker("producer", app, [create_insert_parameter("data5", "testrepo2", 1200)],
+    commChecker = CommandChecker("producer", app, [create_insert_parameter("data5", "testrepo3", get_time(0, 5, 0)),
+                                                   create_insert_parameter("data5", "testrepo8", get_time(0, 5, 0))],
                                  [])
     aio.ensure_future(commChecker.listen())
     app.run_forever(after_start=commChecker.check_insert("/catalog"))
