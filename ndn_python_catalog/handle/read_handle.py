@@ -4,6 +4,7 @@ from ..storage import SqliteStorage
 from ndn.encoding import FormalName, InterestParam, BinaryStr, Name
 from typing import Optional
 from ..command import CatalogRequestParameter
+import logging
 
 
 class ReadHandle(object):
@@ -13,7 +14,7 @@ class ReadHandle(object):
         aio.ensure_future(self.listen(Name.from_str(prefix)))
 
     async def listen(self, prefix):
-        print("REGISTERED TO: ", Name.to_str(prefix + ['query']))
+        logging.debug("REGISTERED TO: {}".format(Name.to_str(prefix + ['query'])))
         self.app.route(prefix + ['query'])(self._on_interest)
 
     def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
@@ -24,9 +25,11 @@ class ReadHandle(object):
         data_name = app_param_parsed.data_name
 
         query_key = Name.to_str(data_name)
+        logging.debug("Name recvd: {}".format(query_key))
         name_bytes = self.storage.get(query_key)
-        print(name_bytes)
+        logging.debug("Database returned: {}".format(str(name_bytes)))
         if name_bytes is not None:
-            self.app.put_data(int_name, content=name_bytes.encode(), freshness_period=500)
+            response = "|".join(name_bytes)
+            self.app.put_data(int_name, content=response.encode(), freshness_period=500)
         else:
             self.app.put_data(int_name, content="".encode(), freshness_period=500)

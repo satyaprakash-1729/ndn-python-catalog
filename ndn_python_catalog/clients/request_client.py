@@ -1,6 +1,6 @@
 import os
 import sys
-
+import logging
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
 from ndn.app import NDNApp
@@ -9,6 +9,16 @@ from ndn.types import InterestNack, InterestTimeout
 from command.catalog_command import *
 from ndn.security import KeychainDigest
 from ndn.utils import gen_nonce
+
+
+def config_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
 
 
 class InterestChecker(object):
@@ -28,19 +38,17 @@ class InterestChecker(object):
         name = Name.from_str(catalog_name)
         name += [method]
         name += [str(gen_nonce())]
-        print("Sending interest to ", Name.to_str(name))
+        logging.debug("Sending interest to {}".format(Name.to_str(name)))
         try:
             _, _, data_bytes = await self.app.express_interest(
                     name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=4000)
             data_recvd = bytes(data_bytes)
-            print(data_recvd)
-            assert bytes(repo_name, encoding='utf-8') == data_recvd
-            print("Repo Name Correct!")
+            logging.debug("Data Recvd: {}".format(data_recvd))
         except InterestNack:
-            print(">>>NACK")
+            logging.debug(">>>NACK")
             return None
         except InterestTimeout:
-            print(">>>TIMEOUT")
+            logging.debug(">>>TIMEOUT")
             return None
         finally:
             app.shutdown()
@@ -48,6 +56,7 @@ class InterestChecker(object):
 
 
 if __name__ == "__main__":
+    config_logging()
     app = NDNApp()
     intChecker = InterestChecker(app)
-    app.run_forever(after_start=intChecker.check_interest("data1", "/catalog3", repo_name="/testrepo"))
+    app.run_forever(after_start=intChecker.check_interest("data5", "/catalog", repo_name="/testrepo"))

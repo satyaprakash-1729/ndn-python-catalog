@@ -6,6 +6,8 @@ from .storage.storage_factory import *
 import asyncio as aio
 from ndn.encoding import Name
 from ndn.security import KeychainDigest
+import logging
+import sys
 
 
 def process_cmd_opts():
@@ -36,6 +38,16 @@ def process_cmd_opts():
     return args
 
 
+def config_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
+
 def process_config(cmdline_args):
     """
     Read and process config file. Some config options are overridden by cmdline args.
@@ -48,6 +60,7 @@ def process_config(cmdline_args):
 
 def main() -> int:
     cmdline_args = process_cmd_opts()
+    config_logging()
     configuration = process_config(cmdline_args)
     storage = create_storage(configuration['db_config'])
 
@@ -64,7 +77,7 @@ def main() -> int:
     try:
         app.run_forever()
     except FileNotFoundError:
-        print('Error: could not connect to NFD.')
+        logging.error('Error: could not connect to NFD.')
     return 0
 
 

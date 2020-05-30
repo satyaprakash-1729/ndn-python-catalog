@@ -1,4 +1,4 @@
-from ndn.encoding import TlvModel, NameField, RepeatedField, UintField
+from ndn.encoding import TlvModel, NameField, RepeatedField, UintField, ModelField
 
 
 class CatalogCommandParameter(TlvModel):
@@ -14,8 +14,17 @@ class CatalogRequestParameter(TlvModel):
     data_name = NameField()
 
 
-class CatalogDataListParameter(TlvModel):
+class CatalogInsertParameter(TlvModel):
+    data_name = NameField()
     name = NameField()
-    insert_data_names = RepeatedField(NameField())
-    dummy = UintField(1)
-    delete_data_names = RepeatedField(NameField())
+    expire_time_ms = UintField(8)
+
+
+class CatalogDeleteParameter(TlvModel):
+    data_name = NameField()
+    name = NameField()
+
+
+class CatalogDataListParameter(TlvModel):
+    insert_data_names = RepeatedField(ModelField(1, CatalogInsertParameter))
+    delete_data_names = RepeatedField(ModelField(2, CatalogDeleteParameter))

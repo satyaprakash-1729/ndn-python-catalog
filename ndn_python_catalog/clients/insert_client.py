@@ -1,19 +1,21 @@
 import os
 import sys
-
+import logging
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import asyncio as aio
 from ndn.app import NDNApp
 from ndn.encoding import Name, FormalName, InterestParam, BinaryStr
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from ndn.types import InterestNack, InterestTimeout
-from command.catalog_command import CatalogCommandParameter, CatalogResponseParameter, CatalogDataListParameter
+from command.catalog_command import CatalogCommandParameter, CatalogResponseParameter,\
+    CatalogDataListParameter, CatalogInsertParameter, CatalogDeleteParameter
 from ndn.security import KeychainDigest
 from ndn.utils import gen_nonce
 
 
 class CommandChecker(object):
-    def __init__(self, prefix: str, app: NDNApp, insert_data_names: List[str], delete_data_names: List[str]):
+    def __init__(self, prefix: str, app: NDNApp, insert_data_names: List[CatalogInsertParameter],
+                 delete_data_names: List[CatalogDeleteParameter]):
         self.app = app
         self.insert_data_names = insert_data_names
         self.delete_data_names = delete_data_names
@@ -21,7 +23,7 @@ class CommandChecker(object):
 
     async def listen(self):
         name = Name.from_str(self.prefix) + ["fetch_map"]
-        print("Listening: ", Name.to_str(name))
+        logging.debug("Listening: ", Name.to_str(name))
         self.app.route(name)(self._on_interest)
 
     async def check_insert(self, catalog_name: str) -> CatalogResponseParameter:
@@ -33,39 +35,53 @@ class CommandChecker(object):
         name = Name.from_str(catalog_name)
         name += [method]
         name += [str(gen_nonce())]
-        print(">>>>>>>>>", Name.to_str(name))
+        logging.debug("Name: {}".format(Name.to_str(name)))
         try:
             aio.ensure_future(self.send_interest(name, cmd_param_bytes))
         except InterestNack:
-            print(">>>NACK")
+            logging.debug(">>>NACK")
             return None
         except InterestTimeout:
-            print(">>>TIMEOUT")
+            logging.debug(">>>TIMEOUT")
             return None
         # return cmd_response
 
     async def send_interest(self, name: FormalName, cmd_param_bytes: bytes):
         _, _, data_bytes = await self.app.express_interest(
             name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False)
-        print(">>> ACK RECVD: ", bytes(data_bytes))
+        logging.debug("> ACK RECVD: {}".format(bytes(data_bytes)))
 
     def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
-        print(">>>> FETCH REQUEST", int_name)
+        logging.debug("> FETCH REQUEST {}".format(int_name))
         aio.ensure_future(self._process_interest(int_name, int_param, app_param))
 
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         cmd_param = CatalogDataListParameter()
-        cmd_param.name = self.prefix
         cmd_param.insert_data_names = self.insert_data_names
-        cmd_param.dummy = 0
         cmd_param.delete_data_names = self.delete_data_names
         cmd_param = cmd_param.encode()
 
         self.app.put_data(int_name, bytes(cmd_param), freshness_period=500)
 
 
+def create_insert_parameter(data_name: str, name: str, expire_time_ms: int):
+    param = CatalogInsertParameter()
+    param.data_name = data_name
+    param.name = name
+    param.expire_time_ms = expire_time_ms
+    return param
+
+
+def create_delete_parameter(data_name: str, name: str):
+    param = CatalogDeleteParameter()
+    param.data_name = data_name
+    param.name = name
+    return param
+
+
 if __name__ == "__main__":
     app = NDNApp()
-    commChecker = CommandChecker("testrepo2", app, ["data4", "data5"], [])
+    commChecker = CommandChecker("producer", app, [create_insert_parameter("data5", "testrepo2", 1200)],
+                                 [])
     aio.ensure_future(commChecker.listen())
-    app.run_forever(after_start=commChecker.check_insert("/catalog3"))
+    app.run_forever(after_start=commChecker.check_insert("/catalog"))
