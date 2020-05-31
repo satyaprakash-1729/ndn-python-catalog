@@ -30,7 +30,13 @@ class InterestChecker(object):
 
     async def _check(self, data_name: str,
                      catalog_name: str, method: str):
-
+        """
+        Sends an interest with the given data name in the app parameters to the catalog.
+        The catalog responds with a list of repo forwarding hints that hold this data.
+        :param data_name: the data name to repo name mapping to be requested from the catalog
+        :param catalog_name: name / prefix of the catalog
+        :param method: whether insert or query interest
+        """
         cmd_param = CatalogRequestParameter()
         cmd_param.data_name = data_name
         cmd_param_bytes = cmd_param.encode()
@@ -46,13 +52,12 @@ class InterestChecker(object):
             logging.debug("Data Recvd: {}".format(data_recvd))
         except InterestNack:
             logging.debug(">>>NACK")
-            return None
+            return
         except InterestTimeout:
             logging.debug(">>>TIMEOUT")
-            return None
+            return
         finally:
             app.shutdown()
-        # return cmd_response
 
 
 if __name__ == "__main__":

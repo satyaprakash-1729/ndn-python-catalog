@@ -13,6 +13,13 @@ import time
 
 
 class WriteHandle(CommandHandle):
+    """
+    Handles the insertion Protocol for catalog. Involves a 4 way routine.
+    Client ---Interest for insertion---> Catalog
+    Catalog ---ACK---> Client
+    Catalog ---Request for data---> Client
+    Client ---Data for insertion and deletion---> Catalog
+    """
     def __init__(self, app: NDNApp, storage: SqliteStorage, read_handle: ReadHandle):
         super(WriteHandle, self).__init__(app, storage)
         self.m_read_handle = read_handle
@@ -20,12 +27,21 @@ class WriteHandle(CommandHandle):
         self.storage = storage
 
     async def listen(self, prefix: NonStrictName):
+        """
+        Starts listening on /catalog_prefix/insert
+        :param prefix: the prefix for the catalog
+        """
         self.prefix = prefix
         logging.debug("REGISTERED TO: {}".format(Name.to_str(self.prefix + ['insert'])))
-        # /catalog/insert
         self.app.route(self.prefix + ['insert'])(self._on_insert)
 
     def _on_insert(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
+        """
+        Callback for insertion request interest.
+        :param int_name:
+        :param int_param:
+        :param app_param:
+        """
         logging.debug("Interest Received: {}".format(Name.to_str(int_name), int_param))
         aio.ensure_future(self._process_insert(int_name, int_param, app_param))
 
@@ -33,8 +49,16 @@ class WriteHandle(CommandHandle):
     def get_current_time() -> int:
         return int(time.time())
 
-
     async def _process_insert(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
+        """
+        Called when an insert interest is received. Extracts the client name from the app params for forwarding hint.
+        Sends a ACK and then a data fetch interest to the client.
+        Performs SQLite operations based on the data insertion/deletion request received.
+        :param int_name:
+        :param int_param:
+        :param app_param:
+        :return:
+        """
         cmd_param = CatalogCommandParameter.parse(app_param)
         name = cmd_param.name
         name = name + ['fetch_map']

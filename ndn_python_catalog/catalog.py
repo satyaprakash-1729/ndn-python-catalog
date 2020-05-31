@@ -14,4 +14,7 @@ class Catalog(object):
         self.running = True
 
     async def listen(self):
+        """
+        Start listening on the write handle.
+        """
         await self.write_handle.listen(self.prefix)
