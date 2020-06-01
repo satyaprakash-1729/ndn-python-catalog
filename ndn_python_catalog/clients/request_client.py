@@ -48,7 +48,7 @@ class InterestChecker(object):
         try:
             _, _, data_bytes = await self.app.express_interest(
                     name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=4000)
-            data_recvd = bytes(data_bytes)
+            data_recvd = bytes(data_bytes).decode('utf-8').split("|")
             logging.debug("Data Recvd: {}".format(data_recvd))
         except InterestNack:
             logging.debug(">>>NACK")

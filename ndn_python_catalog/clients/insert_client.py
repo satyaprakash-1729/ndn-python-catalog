@@ -37,7 +37,7 @@ class CommandChecker(object):
         the catalog when requests is received.
         """
         name = Name.from_str(self.prefix) + ["fetch_map"]
-        logging.debug("Listening: ", Name.to_str(name))
+        logging.debug("Listening: {}".format(Name.to_str(name)))
         self.app.route(name)(self._on_interest)
 
     async def check_insert(self, catalog_name: str) -> CatalogResponseParameter:
