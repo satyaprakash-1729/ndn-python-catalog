@@ -25,11 +25,13 @@ def config_logging():
 
 class CommandChecker(object):
     def __init__(self, prefix: str, app: NDNApp, insert_data_names: List[CatalogInsertParameter],
-                 delete_data_names: List[CatalogDeleteParameter]):
+                 delete_data_names: List[CatalogDeleteParameter], catalog_name: str):
         self.app = app
         self.insert_data_names = insert_data_names
         self.delete_data_names = delete_data_names
         self.prefix = prefix
+        self.catalog_name = catalog_name
+        self.nonce = 0
 
     async def listen(self):
         """
@@ -40,7 +42,7 @@ class CommandChecker(object):
         logging.debug("Listening: {}".format(Name.to_str(name)))
         self.app.route(name)(self._on_interest)
 
-    async def check_insert(self, catalog_name: str) -> CatalogResponseParameter:
+    async def check_insert(self) -> CatalogResponseParameter:
         """
         Sends an interest to the catalog and waits for acknowledgement which is basically an
         empty data packet. Once it gets an acknowledgement it knows that the catalog received the
@@ -53,10 +55,11 @@ class CommandChecker(object):
         cmd_param.name = self.prefix
         cmd_param_bytes = cmd_param.encode()
 
-        name = Name.from_str(catalog_name)
+        name = Name.from_str(self.catalog_name)
         name += [method]
-        name += [str(gen_nonce())]
-        logging.debug("Name: {}".format(Name.to_str(name)))
+        self.nonce = gen_nonce()
+        name += [str(self.nonce)]
+        logging.info("Name: {}".format(Name.to_str(name)))
         try:
             aio.ensure_future(self.send_interest(name, cmd_param_bytes))
         except InterestNack:
@@ -74,7 +77,7 @@ class CommandChecker(object):
         """
         _, _, data_bytes = await self.app.express_interest(
             name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False)
-        logging.debug("> ACK RECVD: {}".format(bytes(data_bytes)))
+        logging.info("> ACK RECVD: {}".format(bytes(data_bytes)))
 
     def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         """
@@ -83,14 +86,14 @@ class CommandChecker(object):
         :param int_param: the interest params received.
         :param app_param: the app params received.
         """
-        logging.debug("> FETCH REQUEST {}".format(int_name))
+        logging.info("FETCH REQUEST {}".format(int_name))
         aio.ensure_future(self._process_interest(int_name, int_param, app_param))
 
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         """
         Makes a new CatalogDataListParameter object containing all the insertion params and deletion params.
         Every insert parameter contains the data name, the name to map the data to and the expiry time for
-        insertions.
+        insertions. Also, checks the status of insertion request.
         :param int_name: the interest name received.
         :param int_param: the interest params received.
         :param app_param: the app params received.
@@ -101,6 +104,18 @@ class CommandChecker(object):
         cmd_param = cmd_param.encode()
 
         self.app.put_data(int_name, bytes(cmd_param), freshness_period=500)
+
+        # CHECK STATUS
+        await aio.sleep(5)
+        name = Name.from_str(self.catalog_name)
+        name += ['check']
+        name += [str(self.nonce)]
+        name += [str(gen_nonce())]
+        _, _, data_bytes = await self.app.express_interest(
+            name, must_be_fresh=True, can_be_prefix=False)
+        response = CatalogResponseParameter.parse(data_bytes)
+        logging.info("STATUS RECVD: {}".format(response.status))
+        self.app.shutdown()
 
 
 def create_insert_parameter(data_name: str, name: str, expire_time_ms: int):
@@ -145,8 +160,8 @@ def get_time(hrs: int, mins: int, secs: int):
 if __name__ == "__main__":
     config_logging()
     app = NDNApp()
-    commChecker = CommandChecker("producer", app, [create_insert_parameter("data5", "testrepo3", get_time(0, 5, 0)),
-                                                   create_insert_parameter("data5", "testrepo8", get_time(0, 5, 0))],
-                                 [])
+    commChecker = CommandChecker("producer", app, [create_insert_parameter("data7", "testrepo3", get_time(0, 5, 0)),
+                                                   create_insert_parameter("data7", "testrepo8", get_time(0, 5, 0))],
+                                 [], "/catalog")
     aio.ensure_future(commChecker.listen())
-    app.run_forever(after_start=commChecker.check_insert("/catalog"))
+    app.run_forever(after_start=commChecker.check_insert())

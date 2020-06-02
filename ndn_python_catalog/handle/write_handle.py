@@ -1,6 +1,6 @@
 import asyncio as aio
 from ndn.app import NDNApp
-from ndn.encoding import NonStrictName, FormalName, InterestParam, BinaryStr, Name
+from ndn.encoding import NonStrictName, FormalName, InterestParam, BinaryStr, Name, Component
 from typing import Optional
 from .command_handle import CommandHandle
 from .read_handle import ReadHandle
@@ -25,6 +25,7 @@ class WriteHandle(CommandHandle):
         self.m_read_handle = read_handle
         self.prefix = None
         self.storage = storage
+        self.processes = {}
 
     async def listen(self, prefix: NonStrictName):
         """
@@ -32,8 +33,11 @@ class WriteHandle(CommandHandle):
         :param prefix: the prefix for the catalog
         """
         self.prefix = prefix
-        logging.debug("REGISTERED TO: {}".format(Name.to_str(self.prefix + ['insert'])))
+        logging.info("For INSERT Registered To: {}".format(Name.to_str(self.prefix + ['insert'])))
         self.app.route(self.prefix + ['insert'])(self._on_insert)
+
+        logging.info("For CHECK Registered To: {}".format(Name.to_str(self.prefix + ['check'])))
+        self.app.route(self.prefix + ['check'])(self._on_check)
 
     def _on_insert(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
         """
@@ -59,12 +63,14 @@ class WriteHandle(CommandHandle):
         :param app_param:
         :return:
         """
+        nonce = int(Component.to_str(int_name[-2]))
+        self.processes[nonce] = False
         cmd_param = CatalogCommandParameter.parse(app_param)
         name = cmd_param.name
         name = name + ['fetch_map']
 
         # ACK
-        logging.debug("Sending ACK for insert request")
+        logging.info("Sending ACK for insert request")
         self.app.put_data(int_name, "".encode(), freshness_period=500)
 
         # INTEREST
@@ -73,7 +79,7 @@ class WriteHandle(CommandHandle):
         while n_retries > 0:
             try:
                 nonce_name = name + [str(gen_nonce())]
-                logging.debug("Sending interest on : {}".format(Name.to_str(name)))
+                logging.info("Sending interest on : {}".format(Name.to_str(name)))
                 _, _, data_bytes = await self.app.express_interest(nonce_name, must_be_fresh=True, can_be_prefix=False)
                 break
             except InterestNack:
@@ -89,7 +95,7 @@ class WriteHandle(CommandHandle):
         data_recvd = CatalogDataListParameter.parse(data_bytes)
         insert_list = data_recvd.insert_data_names
         delete_list = data_recvd.delete_data_names
-        logging.debug("Insert {} names. Delete {} names,".format(len(insert_list), len(delete_list)))
+        logging.info("Insert {} names. Delete {} names,".format(len(insert_list), len(delete_list)))
 
         cur_time = WriteHandle.get_current_time()
         data_names = [Name.to_str(insert_param.data_name) for insert_param in insert_list]
@@ -100,3 +106,29 @@ class WriteHandle(CommandHandle):
         data_names = [Name.to_str(delete_param.data_name) for delete_param in delete_list]
         names = [Name.to_str(delete_param.name) for delete_param in delete_list]
         self.storage.remove_batch(data_names, names)
+
+        self.processes[nonce] = True
+
+    def _on_check(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
+        """
+        Handler for status check requests from insertion clients.
+        :param int_name:
+        :param int_param:
+        :param app_param:
+        :return:
+        """
+        process_id = int(Component.to_str(int_name[-2]))
+        if process_id not in self.processes:
+            response = CatalogResponseParameter()
+            response.status = 404
+            self.app.put_data(int_name, response.encode(), freshness_period=500)
+            return
+
+        status = self.processes[process_id]
+        response = CatalogResponseParameter()
+        if status:
+            response.status = 200
+            self.app.put_data(int_name, response.encode(), freshness_period=500)
+        else:
+            response.status = 201
+            self.app.put_data(int_name, response.encode(), freshness_period=500)

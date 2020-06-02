@@ -3,10 +3,8 @@ setup.py
 ndn_python_catalog/__init__.py
 ndn_python_catalog/catalog.py
 ndn_python_catalog/config.py
-ndn_python_catalog/consumer.py
 ndn_python_catalog/install.py
 ndn_python_catalog/main.py
-ndn_python_catalog/producer.py
 ndn_python_catalog.egg-info/PKG-INFO
 ndn_python_catalog.egg-info/SOURCES.txt
 ndn_python_catalog.egg-info/dependency_links.txt

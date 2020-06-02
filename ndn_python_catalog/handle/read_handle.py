@@ -22,7 +22,7 @@ class ReadHandle(object):
         Starts listening on the catalog's prefix for "query" requests.
         :param prefix: Prefix of the catalog.
         """
-        logging.debug("REGISTERED TO: {}".format(Name.to_str(prefix + ['query'])))
+        logging.info("REGISTERED TO: {}".format(Name.to_str(prefix + ['query'])))
         self.app.route(prefix + ['query'])(self._on_interest)
 
     def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
@@ -49,9 +49,9 @@ class ReadHandle(object):
         data_name = app_param_parsed.data_name
 
         query_key = Name.to_str(data_name)
-        logging.debug("Name recvd: {}".format(query_key))
+        logging.info("Name recvd: {}".format(query_key))
         name_bytes = self.storage.get(query_key)
-        logging.debug("Database returned: {}".format(str(name_bytes)))
+        logging.info("Database returned: {}".format(str(name_bytes)))
         if name_bytes is not None:
             response = "|".join(name_bytes)
             self.app.put_data(int_name, content=response.encode(), freshness_period=500)

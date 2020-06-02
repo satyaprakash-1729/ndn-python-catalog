@@ -12,8 +12,7 @@ class CatalogResponseParameter(TlvModel):
     """
     Catalog Response App Param format.
     """
-    data_name = NameField()
-    name = NameField()
+    status = UintField(8)
 
 
 class CatalogRequestParameter(TlvModel):
@@ -29,7 +28,7 @@ class CatalogInsertParameter(TlvModel):
     """
     data_name = NameField()
     name = NameField()
-    expire_time_ms = UintField(8)
+    expire_time_ms = UintField(2)
 
 
 class CatalogDeleteParameter(TlvModel):

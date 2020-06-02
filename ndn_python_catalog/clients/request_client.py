@@ -44,12 +44,12 @@ class InterestChecker(object):
         name = Name.from_str(catalog_name)
         name += [method]
         name += [str(gen_nonce())]
-        logging.debug("Sending interest to {}".format(Name.to_str(name)))
+        logging.info("Sending interest to {}".format(Name.to_str(name)))
         try:
             _, _, data_bytes = await self.app.express_interest(
                     name, app_param=cmd_param_bytes, must_be_fresh=True, can_be_prefix=False, lifetime=4000)
             data_recvd = bytes(data_bytes).decode('utf-8').split("|")
-            logging.debug("Data Recvd: {}".format(data_recvd))
+            logging.info("Data Recvd: {}".format(data_recvd))
         except InterestNack:
             logging.debug(">>>NACK")
             return
