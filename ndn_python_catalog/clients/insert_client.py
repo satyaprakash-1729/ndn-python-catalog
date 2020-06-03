@@ -15,7 +15,7 @@ from ndn.utils import gen_nonce
 
 def config_logging():
     root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
+    root.setLevel(logging.INFO)
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -86,7 +86,7 @@ class CommandChecker(object):
         :param int_param: the interest params received.
         :param app_param: the app params received.
         """
-        logging.info("FETCH REQUEST {}".format(int_name))
+        logging.info("FETCH REQUEST {}".format(Name.to_str(int_name)))
         aio.ensure_future(self._process_interest(int_name, int_param, app_param))
 
     async def _process_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):
@@ -107,6 +107,7 @@ class CommandChecker(object):
 
         # CHECK STATUS
         await aio.sleep(5)
+        logging.info("Status Check Request Sent...")
         name = Name.from_str(self.catalog_name)
         name += ['check']
         name += [str(self.nonce)]
@@ -114,7 +115,7 @@ class CommandChecker(object):
         _, _, data_bytes = await self.app.express_interest(
             name, must_be_fresh=True, can_be_prefix=False)
         response = CatalogResponseParameter.parse(data_bytes)
-        logging.info("STATUS RECVD: {}".format(response.status))
+        logging.info("Status Received: {}".format(response.status))
         self.app.shutdown()
 
 
@@ -160,8 +161,8 @@ def get_time(hrs: int, mins: int, secs: int):
 if __name__ == "__main__":
     config_logging()
     app = NDNApp()
-    commChecker = CommandChecker("producer", app, [create_insert_parameter("data7", "testrepo3", get_time(0, 5, 0)),
-                                                   create_insert_parameter("data7", "testrepo8", get_time(0, 5, 0))],
-                                 [], "/catalog")
+    commChecker = CommandChecker("producer", app, [create_insert_parameter("data30", "testrepo", get_time(0, 150, 0)),
+                                                   create_insert_parameter("data24", "testrepo", get_time(0, 150, 0))],
+                                 [create_delete_parameter("data24", "testrepo1")], "/catalog")
     aio.ensure_future(commChecker.listen())
     app.run_forever(after_start=commChecker.check_insert())

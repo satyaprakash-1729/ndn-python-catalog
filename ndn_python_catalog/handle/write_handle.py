@@ -63,6 +63,8 @@ class WriteHandle(CommandHandle):
         :param app_param:
         :return:
         """
+        print("------------------------------------------------------------------")
+        logging.info("Received Insert Request: {}".format(Name.to_str(int_name)))
         nonce = int(Component.to_str(int_name[-2]))
         self.processes[nonce] = False
         cmd_param = CatalogCommandParameter.parse(app_param)
@@ -79,7 +81,7 @@ class WriteHandle(CommandHandle):
         while n_retries > 0:
             try:
                 nonce_name = name + [str(gen_nonce())]
-                logging.info("Sending interest on : {}".format(Name.to_str(name)))
+                logging.info("Sending interest on : {}".format(Name.to_str(nonce_name)))
                 _, _, data_bytes = await self.app.express_interest(nonce_name, must_be_fresh=True, can_be_prefix=False)
                 break
             except InterestNack:
@@ -118,6 +120,8 @@ class WriteHandle(CommandHandle):
         :return:
         """
         process_id = int(Component.to_str(int_name[-2]))
+        logging.info("Status Check Request Received: {}".format(Name.to_str(int_name)))
+        logging.info("Checking status of Process ID: {}".format(process_id))
         if process_id not in self.processes:
             response = CatalogResponseParameter()
             response.status = 404

@@ -13,7 +13,7 @@ from ndn.utils import gen_nonce
 
 def config_logging():
     root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
+    root.setLevel(logging.INFO)
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -51,10 +51,10 @@ class InterestChecker(object):
             data_recvd = bytes(data_bytes).decode('utf-8').split("|")
             logging.info("Data Recvd: {}".format(data_recvd))
         except InterestNack:
-            logging.debug(">>>NACK")
+            logging.error(">>>NACK")
             return
         except InterestTimeout:
-            logging.debug(">>>TIMEOUT")
+            logging.error(">>>TIMEOUT")
             return
         finally:
             app.shutdown()
@@ -64,4 +64,4 @@ if __name__ == "__main__":
     config_logging()
     app = NDNApp()
     intChecker = InterestChecker(app)
-    app.run_forever(after_start=intChecker.check_interest("data5", "/catalog"))
+    app.run_forever(after_start=intChecker.check_interest("data9", "/catalog"))

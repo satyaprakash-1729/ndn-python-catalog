@@ -45,15 +45,16 @@ class ReadHandle(object):
         :param app_param:
         :return:
         """
+        print("------------------------------------------------------------------")
         app_param_parsed = CatalogRequestParameter.parse(app_param)
         data_name = app_param_parsed.data_name
 
         query_key = Name.to_str(data_name)
         logging.info("Name recvd: {}".format(query_key))
         name_bytes = self.storage.get(query_key)
-        logging.info("Database returned: {}".format(str(name_bytes)))
         if name_bytes is not None:
             response = "|".join(name_bytes)
+            logging.info("Data Sent: {}".format(response))
             self.app.put_data(int_name, content=response.encode(), freshness_period=500)
         else:
             self.app.put_data(int_name, content="".encode(), freshness_period=500)
