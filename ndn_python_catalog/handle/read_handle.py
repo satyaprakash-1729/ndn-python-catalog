@@ -22,7 +22,7 @@ class ReadHandle(object):
         Starts listening on the catalog's prefix for "query" requests.
         :param prefix: Prefix of the catalog.
         """
-        logging.info("REGISTERED TO: {}".format(Name.to_str(prefix + ['query'])))
+        logging.info("For QUERY Registered To: {}".format(Name.to_str(prefix + ['query'])))
         self.app.route(prefix + ['query'])(self._on_interest)
 
     def _on_interest(self, int_name: FormalName, int_param: InterestParam, app_param: Optional[BinaryStr]):

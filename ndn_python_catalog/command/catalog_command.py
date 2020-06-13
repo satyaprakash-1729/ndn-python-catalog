@@ -6,6 +6,7 @@ class CatalogCommandParameter(TlvModel):
     Insertion request App Param format.
     """
     name = NameField()
+    data_name = NameField()
 
 
 class CatalogResponseParameter(TlvModel):
@@ -45,3 +46,7 @@ class CatalogDataListParameter(TlvModel):
     """
     insert_data_names = RepeatedField(ModelField(1, CatalogInsertParameter))
     delete_data_names = RepeatedField(ModelField(2, CatalogDeleteParameter))
+
+
+class CatalogDataFetchParameter(TlvModel):
+    data_name = NameField()

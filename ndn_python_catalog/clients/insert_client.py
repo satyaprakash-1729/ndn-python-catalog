@@ -161,8 +161,13 @@ def get_time(hrs: int, mins: int, secs: int):
 if __name__ == "__main__":
     config_logging()
     app = NDNApp()
-    commChecker = CommandChecker("producer", app, [create_insert_parameter("data30", "testrepo", get_time(0, 150, 0)),
-                                                   create_insert_parameter("data24", "testrepo", get_time(0, 150, 0))],
-                                 [create_delete_parameter("data24", "testrepo1")], "/catalog")
+    commChecker = CommandChecker("producer", app, [create_insert_parameter("testdata1", "testrepo", get_time(0, 150, 0)),
+                                                   create_insert_parameter("testdata1", "testrepo1", get_time(0, 150, 0))],
+                                 [create_delete_parameter("testdata3", "testrepo")], "/catalog")
+
+    # commChecker = CommandChecker("producer", app,
+    #                              [create_insert_parameter("testdata3", "testrepo", get_time(2, 0, 0))],
+    #                              [], "/catalog")
+
     aio.ensure_future(commChecker.listen())
     app.run_forever(after_start=commChecker.check_insert())

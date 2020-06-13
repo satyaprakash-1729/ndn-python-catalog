@@ -69,6 +69,7 @@ class WriteHandle(CommandHandle):
         self.processes[nonce] = False
         cmd_param = CatalogCommandParameter.parse(app_param)
         name = cmd_param.name
+        data_name = cmd_param.data_name
         name = name + ['fetch_map']
 
         # ACK
@@ -81,8 +82,11 @@ class WriteHandle(CommandHandle):
         while n_retries > 0:
             try:
                 nonce_name = name + [str(gen_nonce())]
+                app_param_to_send = CatalogDataFetchParameter()
+                app_param_to_send.data_name = data_name
                 logging.info("Sending interest on : {}".format(Name.to_str(nonce_name)))
-                _, _, data_bytes = await self.app.express_interest(nonce_name, must_be_fresh=True, can_be_prefix=False)
+                _, _, data_bytes = await self.app.express_interest(nonce_name, app_param=app_param_to_send.encode(),
+                                                                   must_be_fresh=True, can_be_prefix=False)
                 break
             except InterestNack:
                 logging.error("NACK")
